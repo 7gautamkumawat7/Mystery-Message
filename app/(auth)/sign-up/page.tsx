@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -34,31 +34,41 @@ export default function SignUpPage() {
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const latestUsernameRef = useRef('');
 
   const debouncedCheckUsername = useDebounceCallback(async (val: string) => {
-    if (!val || val.trim().length < 2) {
+    const trimmedVal = val.trim();
+    latestUsernameRef.current = trimmedVal;
+
+    if (!trimmedVal || trimmedVal.length < 2) {
       setUsernameMessage('');
       setIsCheckingUsername(false);
       return;
     }
 
     setIsCheckingUsername(true);
-    setUsernameMessage('');
 
     try {
       const response = await axios.get<ApiResponse>(
-        `/api/check-username-unique?username=${encodeURIComponent(val)}`
+        `/api/check-username-unique?username=${encodeURIComponent(trimmedVal)}`
       );
-      setUsernameMessage(response.data.message);
+      // Only update state if this is still the most recent query
+      if (latestUsernameRef.current === trimmedVal) {
+        setUsernameMessage(response.data.message);
+      }
     } catch (error) {
-      const axiosError = error as AxiosError<ApiResponse>;
-      setUsernameMessage(
-        axiosError.response?.data?.message ?? 'Error checking username'
-      );
+      if (latestUsernameRef.current === trimmedVal) {
+        const axiosError = error as AxiosError<ApiResponse>;
+        setUsernameMessage(
+          axiosError.response?.data?.message ?? 'Error checking username'
+        );
+      }
     } finally {
-      setIsCheckingUsername(false);
+      if (latestUsernameRef.current === trimmedVal) {
+        setIsCheckingUsername(false);
+      }
     }
-  }, 300);
+  }, 500);
 
   useEffect(() => {
     debouncedCheckUsername(username);
@@ -146,8 +156,9 @@ export default function SignUpPage() {
               <input
                 {...register('username', {
                   onChange: (e) => {
-                    setValue('username', e.target.value);
-                    setUsername(e.target.value);
+                    const val = e.target.value;
+                    setValue('username', val);
+                    setUsername(val);
                   },
                 })}
                 type="text"
@@ -155,16 +166,18 @@ export default function SignUpPage() {
                 className={`w-full pl-10 pr-10 py-2.5 bg-slate-950/60 border ${
                   errors.username
                     ? 'border-red-500 focus:ring-red-500'
-                    : isUsernameUnique
+                    : username && !isCheckingUsername && isUsernameUnique
                     ? 'border-emerald-500 focus:ring-emerald-500'
+                    : username && !isCheckingUsername && usernameMessage
+                    ? 'border-red-500 focus:ring-red-500'
                     : 'border-slate-800 focus:ring-blue-500 focus:border-blue-500'
                 } rounded-lg text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 transition`}
                 placeholder="Choose a unique username"
               />
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                 {isCheckingUsername ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
-                ) : usernameMessage ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+                ) : username && usernameMessage ? (
                   isUsernameUnique ? (
                     <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                   ) : (
@@ -173,25 +186,28 @@ export default function SignUpPage() {
                 ) : null}
               </div>
             </div>
-            {isCheckingUsername && (
-              <p className="mt-1 text-xs text-slate-400 flex items-center gap-1">
-                Checking username availability...
-              </p>
-            )}
-            {!isCheckingUsername && usernameMessage && (
-              <p
-                className={`mt-1 text-xs font-medium ${
-                  isUsernameUnique ? 'text-emerald-400' : 'text-red-400'
-                }`}
-              >
-                {usernameMessage}
-              </p>
-            )}
-            {errors.username && (
-              <p className="mt-1 text-xs text-red-400 font-medium">
-                {errors.username.message}
-              </p>
-            )}
+
+            {/* Stable height feedback container prevents UI flickering/layout jumping */}
+            <div className="min-h-[20px] mt-1 flex items-center">
+              {isCheckingUsername ? (
+                <p className="text-xs text-blue-400/90 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                  Checking username availability...
+                </p>
+              ) : username && usernameMessage ? (
+                <p
+                  className={`text-xs font-medium ${
+                    isUsernameUnique ? 'text-emerald-400' : 'text-red-400'
+                  }`}
+                >
+                  {usernameMessage}
+                </p>
+              ) : errors.username ? (
+                <p className="text-xs text-red-400 font-medium">
+                  {errors.username.message}
+                </p>
+              ) : null}
+            </div>
           </div>
 
           {/* Email Field */}

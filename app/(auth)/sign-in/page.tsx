@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+import { signIn, useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -15,10 +15,18 @@ type SignInFormValues = z.infer<typeof signInSchema>;
 
 export default function SignInPage() {
   const router = useRouter();
+  const { status } = useSession();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // If user is already authenticated, redirect to dashboard
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.replace('/dashboard');
+    }
+  }, [status, router]);
 
   const {
     register,
@@ -49,7 +57,6 @@ export default function SignInPage() {
           msg = 'Incorrect email/username or password';
         } else {
           msg = result.error;
-          
         }
 
         setErrorMessage(msg);
@@ -61,12 +68,13 @@ export default function SignInPage() {
         return;
       }
 
-      if (result?.ok || result?.url) {
+      if (result?.ok) {
         toast({
           title: 'Success',
-          description: 'Signed in successfully!',
+          description: 'Signed in successfully! Redirecting...',
         });
-        router.replace('/dashboard');
+        // Force full page navigation to hydrate NextAuth session and cookies
+        window.location.href = '/dashboard';
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong';

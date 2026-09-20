@@ -7,7 +7,6 @@ import * as z from 'zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { useDebounceCallback } from 'usehooks-ts';
 import { signUpSchema } from '@/app/schemas/signUpSchema';
 import axios, { AxiosError } from 'axios';
 import { ApiResponse } from '@/app/types/ApiResponse';
@@ -34,45 +33,55 @@ export default function SignUpPage() {
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const latestUsernameRef = useRef('');
+  const lastCheckedUsernameRef = useRef('');
 
-  const debouncedCheckUsername = useDebounceCallback(async (val: string) => {
-    const trimmedVal = val.trim();
-    latestUsernameRef.current = trimmedVal;
+  useEffect(() => {
+    const trimmedVal = username.trim();
 
+    // If empty or too short, reset status immediately without querying API
     if (!trimmedVal || trimmedVal.length < 2) {
       setUsernameMessage('');
       setIsCheckingUsername(false);
+      lastCheckedUsernameRef.current = '';
+      return;
+    }
+
+    // Avoid querying again if already verified for this exact value
+    if (trimmedVal === lastCheckedUsernameRef.current) {
       return;
     }
 
     setIsCheckingUsername(true);
+    const controller = new AbortController();
 
-    try {
-      const response = await axios.get<ApiResponse>(
-        `/api/check-username-unique?username=${encodeURIComponent(trimmedVal)}`
-      );
-      // Only update state if this is still the most recent query
-      if (latestUsernameRef.current === trimmedVal) {
-        setUsernameMessage(response.data.message);
-      }
-    } catch (error) {
-      if (latestUsernameRef.current === trimmedVal) {
-        const axiosError = error as AxiosError<ApiResponse>;
-        setUsernameMessage(
-          axiosError.response?.data?.message ?? 'Error checking username'
+    const timer = setTimeout(async () => {
+      try {
+        const response = await axios.get<ApiResponse>(
+          `/api/check-username-unique?username=${encodeURIComponent(trimmedVal)}`,
+          { signal: controller.signal }
         );
+        lastCheckedUsernameRef.current = trimmedVal;
+        setUsernameMessage(response.data.message);
+      } catch (error) {
+        if (!axios.isCancel(error)) {
+          const axiosError = error as AxiosError<ApiResponse>;
+          lastCheckedUsernameRef.current = trimmedVal;
+          setUsernameMessage(
+            axiosError.response?.data?.message ?? 'Error checking username'
+          );
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsCheckingUsername(false);
+        }
       }
-    } finally {
-      if (latestUsernameRef.current === trimmedVal) {
-        setIsCheckingUsername(false);
-      }
-    }
-  }, 500);
+    }, 500);
 
-  useEffect(() => {
-    debouncedCheckUsername(username);
-  }, [username, debouncedCheckUsername]);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [username]);
 
   const {
     register,

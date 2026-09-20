@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   try {
     const { username, email, password } = await request.json();
 
-    // Check if verified user exists with same username
+    // 1. Check if a VERIFIED user already owns this username
     const existingUserVerifiedByUsername = await UserModel.findOne({
       username,
       isVerified: true,
@@ -22,11 +22,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate verification code
+    // 2. Generate verification code & hash password
     const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedPassword = await bcrypt.hash(password, 10);
+    const expiryDate = new Date(Date.now() + 3600000); // 1 hour expiry
 
-    // Check if user exists by email
+    // 3. Check if user exists by email
     const existingUserByEmail = await UserModel.findOne({ email });
 
     if (existingUserByEmail) {
@@ -36,9 +37,19 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       } else {
+        // If unverified, user can change their username and request a new code
+        // Delete any other unverified user currently holding this username to prevent MongoDB duplicate key conflicts
+        await UserModel.deleteMany({
+          username,
+          isVerified: false,
+          _id: { $ne: existingUserByEmail._id },
+        });
+
+        // Update unverified user's username, password, and verification code
+        existingUserByEmail.username = username;
         existingUserByEmail.password = hashedPassword;
         existingUserByEmail.verifyCode = verifyCode;
-        existingUserByEmail.verifyCodeExpiry = new Date(Date.now() + 3600000); // 1 hour
+        existingUserByEmail.verifyCodeExpiry = expiryDate;
         await existingUserByEmail.save();
 
         // Send verification email
@@ -51,16 +62,22 @@ export async function POST(request: Request) {
         }
 
         return Response.json(
-          { success: true, message: "Verification email sent. Please verify your account." },
+          {
+            success: true,
+            message: "Verification email sent. Please verify your account.",
+          },
           { status: 200 }
         );
       }
     }
 
-    // If user does not exist, create new one
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + 1);
+    // 4. If email is brand new, clean up any old unverified accounts holding this username
+    await UserModel.deleteMany({
+      username,
+      isVerified: false,
+    });
 
+    // Create new unverified user
     const newUser = new UserModel({
       username,
       email,
@@ -84,13 +101,16 @@ export async function POST(request: Request) {
     }
 
     return Response.json(
-      { success: true, message: "User registered successfully. Please verify your email." },
+      {
+        success: true,
+        message: "User registered successfully. Please verify your email.",
+      },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error registering user:", error);
     return Response.json(
-      { success: false, message: "Error registering user" },
+      { success: false, message: error?.message || "Error registering user" },
       { status: 500 }
     );
   }

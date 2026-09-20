@@ -17,13 +17,13 @@ declare global {
   var mongooseCache: MongooseCache | undefined;
 }
 
-let cached: MongooseCache = global.mongooseCache || { conn: null, promise: null };
+let cached: MongooseCache = (global as any).mongooseCache || { conn: null, promise: null };
 
-if (!global.mongooseCache) {
-  global.mongooseCache = cached;
+if (!(global as any).mongooseCache) {
+  (global as any).mongooseCache = cached;
 }
 
-export default async function dbConnect(): Promise<typeof mongoose> {
+export async function dbConnect(): Promise<typeof mongoose> {
   if (cached.conn && mongoose.connection.readyState === 1) {
     return cached.conn;
   }
@@ -54,3 +54,5 @@ export default async function dbConnect(): Promise<typeof mongoose> {
 
   return cached.conn;
 }
+
+export default dbConnect;

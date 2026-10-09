@@ -12,7 +12,6 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand */}
         <Link
           href="/"
           className="flex items-center gap-2.5 text-white font-bold text-lg tracking-tight hover:opacity-90 transition"
@@ -25,7 +24,6 @@ const Navbar = () => {
           </span>
         </Link>
 
-        {/* Right navigation */}
         <div className="flex items-center gap-3">
           {user ? (
             <div className="flex items-center gap-3 sm:gap-4">

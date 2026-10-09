@@ -1,6 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-// Message interface + schema
 export interface Message extends Document {
   content: string;
   createdAt: Date;
@@ -20,7 +19,6 @@ const MessageSchema: Schema<Message> = new Schema(
   }
 );
 
-// User interface + schema
 export interface User extends Document {
   username: string;
   email: string;
@@ -66,7 +64,7 @@ const UserSchema: Schema<User> = new Schema(
       type: Boolean,
       default: true,
     },
-    messages: [MessageSchema], // embeds Message subdocuments
+    messages: [MessageSchema],
   }
 );
 

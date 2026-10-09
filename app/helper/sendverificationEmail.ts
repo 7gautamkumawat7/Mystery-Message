@@ -2,7 +2,7 @@ import nodemailer from "nodemailer";
 import dns from "node:dns";
 import { ApiResponse } from "@/app/types/ApiResponse";
 
-// Fallback known Google SMTP IPs in case local network DNS completely fails
+// Known Google SMTP cluster IPs for fallback resolution
 const GOOGLE_SMTP_FALLBACK_IPS = ["192.178.158.109", "142.250.141.108", "142.251.2.108", "74.125.130.108"];
 
 async function getGmailSmtpHost(): Promise<string> {
@@ -13,8 +13,8 @@ async function getGmailSmtpHost(): Promise<string> {
     if (addresses && addresses.length > 0) {
       return addresses[0];
     }
-  } catch (err) {
-    console.warn("⚠️ [DNS] Custom DNS lookup failed, using fallback Google SMTP IP");
+  } catch {
+    console.warn("Custom DNS lookup failed, falling back to cached SMTP IP");
   }
   return GOOGLE_SMTP_FALLBACK_IPS[Math.floor(Math.random() * GOOGLE_SMTP_FALLBACK_IPS.length)];
 }
@@ -24,18 +24,15 @@ export async function sendVerificationEmail(
   username: string,
   verifyCode: string
 ): Promise<ApiResponse> {
-  // Always log OTP prominently to server terminal for instant testing
   console.log(`\n========================================`);
-  console.log(`🔑 [OTP CODE GENERATED]     : ${verifyCode}`);
-  console.log(`👤 Username                 : ${username}`);
-  console.log(`📧 Recipient Email          : ${email}`);
+  console.log(`[OTP] Username: ${username} | Code: ${verifyCode}`);
   console.log(`========================================\n`);
 
   const emailUser = process.env.EMAIL_USER?.trim();
   const emailPass = process.env.EMAIL_PASS?.trim().replace(/\s+/g, "");
 
   if (!emailUser || !emailPass) {
-    console.warn("⚠️ [EMAIL CONFIG] Missing EMAIL_USER or EMAIL_PASS in .env");
+    console.warn("EMAIL_USER or EMAIL_PASS missing in environment configuration");
     return {
       success: false,
       message: "Email credentials not configured in .env file.",
@@ -43,7 +40,7 @@ export async function sendVerificationEmail(
   }
 
   try {
-    // Resolve host via independent Google/Cloudflare resolver to guarantee NO Windows queryA ETIMEOUT
+    // Resolve host with resilient DNS to avoid lookup timeouts
     const host = await getGmailSmtpHost();
 
     const transporter = nodemailer.createTransport({
@@ -103,16 +100,17 @@ export async function sendVerificationEmail(
       success: true,
       message: "Verification email sent successfully.",
     };
-  } catch (error: any) {
-    if (error?.code === "EAUTH") {
+  } catch (error: unknown) {
+    const err = error as { code?: string; message?: string } | null;
+    if (err?.code === "EAUTH") {
       console.error("\n❌ [GMAIL AUTH FAILED]: Invalid EMAIL_USER or Google App Password in .env.");
       console.log(`👉 [DEV MODE]: Your account was created! Use OTP [ ${verifyCode} ] on the verify page.`);
       console.log(`🔗 Generate your Google App Password at https://myaccount.google.com/apppasswords\n`);
     } else {
-      console.error("❌ Error sending verification email:", error?.message || error);
+      console.error("❌ Error sending verification email:", err?.message || error);
     }
 
-    // In development mode, return success so user can complete registration with the console OTP
+    // Allow registration to proceed locally with terminal OTP if SMTP fails
     return {
       success: true,
       message: "Account created! Use the verification code from your terminal console or email.",

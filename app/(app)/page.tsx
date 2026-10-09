@@ -51,14 +51,11 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-slate-950 text-slate-100 overflow-hidden">
-      {/* Ambient background glow elements */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-gradient-to-b from-blue-600/20 via-indigo-600/10 to-transparent blur-3xl pointer-events-none rounded-full" />
       <div className="absolute top-1/3 -left-40 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute top-2/3 -right-40 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Hero Section */}
       <section className="relative pt-16 pb-12 sm:pt-24 sm:pb-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto text-center">
-        {/* Top Feature Pill */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-950/60 border border-blue-800/60 text-blue-300 text-xs sm:text-sm font-medium mb-6 shadow-sm backdrop-blur-md">
           <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
           <span>True Anonymous Messaging Platform</span>
@@ -66,7 +63,6 @@ export default function Home() {
           <span className="text-slate-400">100% Confidential</span>
         </div>
 
-        {/* Main Headline */}
         <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.15]">
           Dive into the World of{" "}
           <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
@@ -74,13 +70,11 @@ export default function Home() {
           </span>
         </h1>
 
-        {/* Subtitle */}
         <p className="mt-6 text-base sm:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
           Mystery Message lets your audience, friends, and peers share genuine thoughts,
           constructive critiques, and secret questions — with zero identity exposure.
         </p>
 
-        {/* CTA Buttons */}
         <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
           <Link
             href="/sign-up"
@@ -98,7 +92,6 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* Trust Badges */}
         <div className="mt-12 pt-8 border-t border-slate-900 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto text-xs text-slate-400">
           <div className="flex items-center justify-center gap-2">
             <Lock className="w-4 h-4 text-emerald-400" />
@@ -119,7 +112,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Messages Carousel Section */}
       <section className="relative py-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-slate-900 border border-slate-800 text-blue-400 text-xs font-semibold uppercase tracking-wider mb-2">
@@ -134,7 +126,6 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Carousel Container */}
         <div className="relative px-2 sm:px-12">
           <Carousel
             setApi={setApi}
@@ -192,12 +183,10 @@ export default function Home() {
               ))}
             </CarouselContent>
 
-            {/* Previous & Next Controls */}
             <CarouselPrevious className="hidden sm:flex -left-4 sm:-left-6 bg-slate-900/90 border-slate-800 hover:bg-slate-800 hover:text-white text-slate-300 shadow-lg cursor-pointer" />
             <CarouselNext className="hidden sm:flex -right-4 sm:-right-6 bg-slate-900/90 border-slate-800 hover:bg-slate-800 hover:text-white text-slate-300 shadow-lg cursor-pointer" />
           </Carousel>
 
-          {/* Slide Indicator Dots */}
           {count > 0 && (
             <div className="flex items-center justify-center gap-2 mt-6">
               {Array.from({ length: count }).map((_, index) => (
@@ -217,7 +206,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How It Works Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto border-t border-slate-900/80">
         <div className="text-center mb-12">
           <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
@@ -267,7 +255,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Feature Grid */}
       <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-6 space-y-3 hover:border-slate-700/80 transition">
@@ -302,7 +289,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Bottom CTA Banner */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-blue-900/40 via-indigo-950/60 to-purple-950/40 border border-blue-500/20 p-8 sm:p-12 text-center shadow-2xl backdrop-blur-xl">
           <div className="absolute inset-0 bg-radial from-blue-500/10 via-transparent to-transparent pointer-events-none" />

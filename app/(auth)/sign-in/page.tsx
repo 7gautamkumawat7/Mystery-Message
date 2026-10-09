@@ -21,7 +21,6 @@ export default function SignInPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // If user is already authenticated, redirect to dashboard
   useEffect(() => {
     if (status === 'authenticated') {
       router.replace('/dashboard');
@@ -73,8 +72,8 @@ export default function SignInPage() {
           title: 'Success',
           description: 'Signed in successfully! Redirecting...',
         });
-        // Force full page navigation to hydrate NextAuth session and cookies
-        window.location.href = '/dashboard';
+        router.replace('/dashboard');
+        router.refresh();
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong';
@@ -92,7 +91,6 @@ export default function SignInPage() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-slate-950 px-4 py-8 text-slate-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl backdrop-blur-xl">
-        {/* Header */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-600/10 text-blue-400 border border-blue-500/20 mb-2">
             <MessageSquare className="w-6 h-6" />
@@ -105,14 +103,12 @@ export default function SignInPage() {
           </p>
         </div>
 
-        {/* Global Error Banner */}
         {errorMessage && (
           <div className="p-3 text-sm text-red-300 bg-red-950/50 border border-red-800/80 rounded-lg flex items-center gap-2">
             <span className="font-medium">{errorMessage}</span>
           </div>
         )}
 
-        {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1.5">
@@ -193,7 +189,6 @@ export default function SignInPage() {
           </button>
         </form>
 
-        {/* Footer */}
         <div className="text-center text-sm text-slate-400 pt-2 border-t border-slate-800">
           Don&apos;t have an account?{' '}
           <Link

@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 import dns from "dns";
 
-// Fix for Windows/ISP querySrv ECONNREFUSED on mongodb+srv
+// Ensure reliable SRV resolution across restrictive DNS resolvers
 try {
   dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
 } catch {
-  // Ignore if already set or restricted
+  // Fall back to system defaults
 }
 
 interface MongooseCache {
@@ -17,10 +17,10 @@ declare global {
   var mongooseCache: MongooseCache | undefined;
 }
 
-let cached: MongooseCache = (global as any).mongooseCache || { conn: null, promise: null };
+const cached: MongooseCache = global.mongooseCache || { conn: null, promise: null };
 
-if (!(global as any).mongooseCache) {
-  (global as any).mongooseCache = cached;
+if (!global.mongooseCache) {
+  global.mongooseCache = cached;
 }
 
 export async function dbConnect(): Promise<typeof mongoose> {

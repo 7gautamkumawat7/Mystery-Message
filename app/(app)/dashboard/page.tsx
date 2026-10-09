@@ -15,7 +15,6 @@ import {
   Loader2,
   Inbox,
   Link as LinkIcon,
-  ShieldAlert,
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -149,7 +148,6 @@ export default function DashboardPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
       
-      {/* Header */}
       <div>
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
           User Dashboard
@@ -159,7 +157,6 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Copy Profile Link Card */}
       <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3 shadow-xl">
         <label className="text-sm font-semibold text-slate-200 flex items-center gap-2">
           <LinkIcon className="w-4 h-4 text-blue-400" />
@@ -191,7 +188,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Accept Messages Switch & Refresh Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-slate-900/50 border border-slate-800/80">
         <div className="flex items-center gap-3">
           <button
@@ -229,7 +225,6 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* Messages Grid */}
       <div className="space-y-4">
         <h2 className="text-xl font-bold text-white flex items-center gap-2">
           <span>Received Messages</span>

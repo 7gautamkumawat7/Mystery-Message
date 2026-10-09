@@ -9,7 +9,6 @@ export async function POST(request: Request) {
   try {
     const { username, email, password } = await request.json();
 
-    // 1. Check if a VERIFIED user already owns this username
     const existingUserVerifiedByUsername = await UserModel.findOne({
       username,
       isVerified: true,
@@ -22,12 +21,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Generate verification code & hash password
     const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedPassword = await bcrypt.hash(password, 10);
-    const expiryDate = new Date(Date.now() + 3600000); // 1 hour expiry
+    const expiryDate = new Date(Date.now() + 3600000);
 
-    // 3. Check if user exists by email
     const existingUserByEmail = await UserModel.findOne({ email });
 
     if (existingUserByEmail) {
@@ -37,22 +34,19 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       } else {
-        // If unverified, user can change their username and request a new code
-        // Delete any other unverified user currently holding this username to prevent MongoDB duplicate key conflicts
+        // Clear conflicting unverified usernames before re-binding
         await UserModel.deleteMany({
           username,
           isVerified: false,
           _id: { $ne: existingUserByEmail._id },
         });
 
-        // Update unverified user's username, password, and verification code
         existingUserByEmail.username = username;
         existingUserByEmail.password = hashedPassword;
         existingUserByEmail.verifyCode = verifyCode;
         existingUserByEmail.verifyCodeExpiry = expiryDate;
         await existingUserByEmail.save();
 
-        // Send verification email
         const emailResponse = await sendVerificationEmail(email, username, verifyCode);
         if (!emailResponse.success) {
           return Response.json(
@@ -71,13 +65,12 @@ export async function POST(request: Request) {
       }
     }
 
-    // 4. If email is brand new, clean up any old unverified accounts holding this username
+    // Clean up abandoned registrations to prevent unique index collisions
     await UserModel.deleteMany({
       username,
       isVerified: false,
     });
 
-    // Create new unverified user
     const newUser = new UserModel({
       username,
       email,
@@ -91,7 +84,6 @@ export async function POST(request: Request) {
 
     await newUser.save();
 
-    // Send verification email
     const emailResponse = await sendVerificationEmail(email, username, verifyCode);
     if (!emailResponse.success) {
       return Response.json(
@@ -107,10 +99,11 @@ export async function POST(request: Request) {
       },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error registering user:", error);
+    const message = error instanceof Error ? error.message : "Error registering user";
     return Response.json(
-      { success: false, message: error?.message || "Error registering user" },
+      { success: false, message },
       { status: 500 }
     );
   }

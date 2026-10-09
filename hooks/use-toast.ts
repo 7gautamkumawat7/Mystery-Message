@@ -9,7 +9,7 @@ export interface ToastProps {
   type?: "success" | "info" | "warning" | "error" | "loading"
   timeout?: number
   action?: React.ReactNode
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export function toast({

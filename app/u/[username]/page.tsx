@@ -16,7 +16,6 @@ import {
   Sparkles,
   MessageSquare,
   User,
-  CheckCircle2,
 } from 'lucide-react';
 
 type MessageFormValues = z.infer<typeof messageSchema>;
@@ -114,7 +113,6 @@ export default function SendMessagePage() {
   return (
     <div className="min-h-screen bg-slate-950 px-4 py-12 flex flex-col items-center justify-center text-slate-100">
       <div className="w-full max-w-2xl space-y-8">
-        {/* Header */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-600/10 text-blue-400 border border-blue-500/20 mb-1">
             <MessageSquare className="w-6 h-6" />
@@ -128,7 +126,6 @@ export default function SendMessagePage() {
           </p>
         </div>
 
-        {/* Message Form */}
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-5 shadow-2xl backdrop-blur-xl"
@@ -172,7 +169,6 @@ export default function SendMessagePage() {
           </button>
         </form>
 
-        {/* Suggested Messages Box */}
         <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
@@ -209,7 +205,6 @@ export default function SendMessagePage() {
           </div>
         </div>
 
-        {/* CTA to create account */}
         <div className="text-center pt-2">
           <p className="text-xs text-slate-500 mb-2">Want your own message board?</p>
           <Link
